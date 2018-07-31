@@ -62,3 +62,12 @@ your_output_directory/
 ```
 
 ## Usage
+
+#### Windows Users
+Inside the downloaded folder, there is a batch script named `exe.bat` which will open the program automatically. If this does not work, you may need to change the path to Anaconda3.
+
+#### Mac/Linux Users
+In your command line, open the project folder and run:  
+`python mapper.py` (Make sure you're using Anaconda3/Python3.x)
+
+Navigate to `localhost:5000` on your favorite browser to open the web application.
