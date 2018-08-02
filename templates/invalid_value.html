@@ -36,8 +36,11 @@
 				</span>
 
                 <div>
-                    <h4>Whoops! Invalid database entry detected. </h4>
-                    <h4>{{ message }}</h4> <br/>
+                    <h4>Whoops! Invalid database entry detected. </h4> <br/>
+                    <h4>File: {{ file }}</h4>
+                    <h4>Key: {{ criteria }}</h4>
+                    <h4>Value: {{ cell_code }}</h4> <br/>
+                    <h4>Already registered as: {{ old_cell_code }}</h4> <br/>
 					<h4>Please try again :( </h4> <br/>
                 </div>
                 

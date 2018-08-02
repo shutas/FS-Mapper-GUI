@@ -3,7 +3,7 @@ import re
 import shutil
 import pandas as pd
 import os
-import traceback
+import ast
 
 app = Flask(__name__)
 
@@ -141,7 +141,13 @@ def init_database(database_dir, blacklist, database):
                         error_msg = "Conflicting cell code for " + criteria + " in " + file + "\n" +\
                         "            Tried to encode " + criteria + " as " + cell_code + "\n" +\
                         "            But " + criteria + " is already registered as " + lookup_database(criteria, database)
-                        raise KeyError(error_msg)
+                        err_dict = {}
+                        err_dict["criteria"] = criteria[1:-1]
+                        err_dict["cell_code"] = cell_code
+                        err_dict["file"] = file
+                        err_dict["old_cell_code"] = lookup_database(criteria, database)
+                        raise KeyError(err_dict)
+                        #raise KeyError(error_msg)
 
 
 def map_cell_codes(input_dir, output_dir, database, mapped_count, total_count):
@@ -207,8 +213,7 @@ def hello():
             return render_template("invalid_directory.html", **context)
         
         except KeyError as err:
-            context = {}
-            context["message"] = err
+            context = ast.literal_eval(str(err))
             return render_template("invalid_value.html", **context)
     
     return render_template("index.html")
