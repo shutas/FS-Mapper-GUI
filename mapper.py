@@ -50,6 +50,15 @@ def standardize(string):
     return string
 
 
+def split2_at_tab(line, filename):
+    try:
+        first, second = line.split("\t")
+        return (first, second)
+
+    except:
+        return (None, None)
+
+
 def regexify(database_dir):
     """Turn all criteria in database files as regular expressions."""
     regex_file_list = [file for file in os.listdir(database_dir) if file.startswith("REGEX_") and file.endswith(".txt")]
@@ -133,7 +142,7 @@ def init_database(database_dir, blacklist, database):
                         error_msg = "Conflicting cell code for " + criteria + " in " + file + "\n" +\
                         "            Tried to encode " + criteria + " as " + cell_code + "\n" +\
                         "            But " + criteria + " is already registered as " + lookup_database(criteria, database)
-                        raise ValueError(error_msg)
+                        raise RuntimeError(error_msg)
 
 
 def map_cell_codes(input_dir, output_dir, database, mapped_count, total_count):
@@ -147,7 +156,6 @@ def map_cell_codes(input_dir, output_dir, database, mapped_count, total_count):
                 line = input_file_ptr.readline().strip()
                 while line:
                     criteria, amount = line.strip().split("\t")
-                    criteria = standardize(criteria)
                     #print("criteria:", criteria, "amount:", amount)
                     cell_code = lookup_database(criteria, database)
                     if cell_code:
@@ -197,7 +205,11 @@ def hello():
             invalid_dir = err_msg[err_msg.find("'") + 1: err_msg.rfind("'")]
             context = {}
             context["dirname"] = invalid_dir
-            return render_template("invaliddirectory.html", **context)
+            return render_template("invalid_directory.html", **context)
+        
+        '''except ValueError as err:
+            print(err)
+            return render_template("invalid_format.html")'''
     
     return render_template("index.html")
 
