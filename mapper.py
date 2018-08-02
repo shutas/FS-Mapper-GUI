@@ -69,13 +69,14 @@ def regexify(database_dir):
                     f2.write("^" + criteria + "$" + "\t" + cell_code + "\n")
                     line = f1.readline().strip()
 
-    with open(os.path.join(database_dir, "blacklist.txt"), encoding="utf-16") as f3:
-        with open(os.path.join(database_dir, "REGEX_blacklist.txt"), encoding="utf-16", mode="a+") as f4:
-            line = f3.readline().strip()
-            while line:
-                line = escape_parenthesis(standardize(line))
-                f4.write("^" + line + "$" + "\n")
+    if os.path.exists(os.path.join(database_dir, "blacklist.txt")):
+        with open(os.path.join(database_dir, "blacklist.txt"), encoding="utf-16") as f3:
+            with open(os.path.join(database_dir, "REGEX_blacklist.txt"), encoding="utf-16", mode="a+") as f4:
                 line = f3.readline().strip()
+                while line:
+                    line = escape_parenthesis(standardize(line))
+                    f4.write("^" + line + "$" + "\n")
+                    line = f3.readline().strip()
 
 def in_blacklist(string, blacklist):
     for pattern in blacklist:
