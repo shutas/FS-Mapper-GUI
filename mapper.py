@@ -144,7 +144,7 @@ def init_database(database_dir, blacklist, database):
                         err_dict = {}
                         err_dict["criteria"] = criteria[1:-1]
                         err_dict["cell_code"] = cell_code
-                        err_dict["file"] = file
+                        err_dict["file"] = file[6:]
                         err_dict["old_cell_code"] = lookup_database(criteria, database)
                         raise KeyError(err_dict)
                         #raise KeyError(error_msg)
