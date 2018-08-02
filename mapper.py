@@ -14,6 +14,12 @@ def reset_directory(dir_name):
         os.remove(file)
 
 
+def purge_directory(dir_name):
+    """Delete all REGEX_ files inside specified directory."""
+    file_list = [os.path.join(dir_name, file) for file in os.listdir(dir_name) if file.startswith("REGEX_") and file.endswith(".txt")]
+    for file in file_list:
+        os.remove(file)
+
 def escape_parenthesis(string):
     paren_list = ["(", ")", "（", "）"]
     escaped_paren_list = ["\(", "\)"]
@@ -179,7 +185,7 @@ def map_cell_codes(input_dir, output_dir, database, mapped_count, total_count):
  
 @app.route("/", methods=["GET", "POST"])
 def main():
-    #
+    # If data is submitted on the main page
     if request.method == "POST":
 
         # Directories
@@ -210,6 +216,10 @@ def main():
             # Process input files
             map_cell_codes(input_dir, output_dir, database, mapped_count, total_count)
 
+            # Delete intermediate files
+            purge_directory(database_dir)
+            purge_directory(input_dir)
+
             # Success! Render processed page
             return render_template("processed.html")
 
@@ -226,6 +236,12 @@ def main():
             context = {}
             context["dirname"] = invalid_dir
             
+            # Delete intermediate files
+            if os.path.exists(database_dir):
+                purge_directory(database_dir)
+            if os.path.exists(input_dir):
+                purge_directory(input_dir)
+
             # Render error page
             return render_template("invalid_directory.html", **context)
         
@@ -234,6 +250,10 @@ def main():
 
             # err is a dict-like string
             context = ast.literal_eval(str(err))
+
+            # Delete intermediate files
+            purge_directory(database_dir)
+            purge_directory(input_dir)
 
             # Render error page
             return render_template("invalid_value.html", **context)
