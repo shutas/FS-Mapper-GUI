@@ -1,9 +1,13 @@
-from flask import Flask, render_template, url_for, request
+"""BMapper: Assistance tool to map one dataset with another of common key."""
+
+# Written by Shuta Suzuki (shutas@umich.edu)
+
+import os
 import re
+import ast
 import shutil
 import pandas as pd
-import os
-import ast
+from flask import Flask, render_template, url_for, request
 
 # Main web app
 app = Flask(__name__)
@@ -84,54 +88,105 @@ def standardize(string):
 
 def regexify(database_dir):
     """Turn all criteria in database files as regular expressions."""
+    # Get list of old REGEX files if found in database directory
     regex_file_list = [file for file in os.listdir(database_dir) \
                        if file.startswith("REGEX_") and file.endswith(".txt")]
+    
+    # Remove these old files
     for file in regex_file_list:
         os.remove(os.path.join(database_dir, file))
 
-
+    # Get list of all database files (excluding blacklist file)
     file_list = [file for file in os.listdir(database_dir) \
                  if file.endswith(".txt") and file != "blacklist.txt"]
+    
+    # For each database file
     for file in file_list:
+
+        # Open database file
         with open(os.path.join(database_dir, file), encoding="utf-16") as f1:
+            
+            # Create/open a new REGEX version of the database file
             with open(os.path.join(database_dir, "REGEX_" + file), encoding="utf-16", mode="a+") as f2:
+                
+                # Get the first line in original database file
                 line = f1.readline().strip()
+                
+                # Until end of file
                 while line:
+
+                    # Database file should be a two-column format
                     try:
                         criteria, cell_code = line.split("\t")
+                    
+                    # Database file not formatted correctly
                     except ValueError:
+
+                        # Gather error information
                         err_dict = {}
                         err_dict["file"] = file
                         err_dict["line"] = line
+
+                        # Raise error to be caught in main
                         raise ValueError(err_dict)
-                    #print("criteria:", criteria)
-                    #print("type of criteria:", type(criteria))
+
+                    # Preprocess criteria/item name
                     criteria = escape_parenthesis(standardize(criteria))
+
+                    # Write to new REGEX file
                     f2.write("^" + criteria + "$" + "\t" + cell_code + "\n")
+
+                    # Get next line
                     line = f1.readline().strip()
 
+    # If there is a blacklist file in database directory
     if os.path.exists(os.path.join(database_dir, "blacklist.txt")):
+
+        # Open blacklist file
         with open(os.path.join(database_dir, "blacklist.txt"), encoding="utf-16") as f3:
+
+            # Create/open a new REGEX version of the blacklist file
             with open(os.path.join(database_dir, "REGEX_blacklist.txt"), encoding="utf-16", mode="a+") as f4:
+                
+                # Get the first line in original blacklist file
                 line = f3.readline().strip()
+
+                # Until end of file
                 while line:
+
+                    # Preprocess criteria/item name
                     line = escape_parenthesis(standardize(line))
+
+                    # Write to new REGEX file
                     f4.write("^" + line + "$" + "\n")
+
+                    # Get next line
                     line = f3.readline().strip()
 
+
 def in_blacklist(string, blacklist):
+    """Returns whether a specified string is in the database."""
+    # Iterate through the blacklist
     for pattern in blacklist:
+
+        # If found, return True
         if re.search(pattern, string):
             return True
+
+    # Not found, return False
     return False
 
 
 def lookup_database(string, database):
+    """Returns cell_code for given key. Returns empty string otherwise."""
+    # Iterate through the database
     for pattern, cell_code in database:
-        #print("pattern:", pattern, "|", "cell_code", cell_code)
+
         # For pattern, take out ^ and $
         if re.search(pattern[1:-1], standardize(string)):
             return cell_code
+
+    # Not found, return empty string
     return ""
 
 
