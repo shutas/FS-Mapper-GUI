@@ -15,10 +15,10 @@ def reset_directory(dir_name):
 
 def escape_parenthesis(string):
     paren_list = ["(", ")", "（", "）"]
-    escaped_paren_list = ["\(", "\)", "\（", "\）"]
+    escaped_paren_list = ["\(", "\)"]
     
     for i in range(4):
-        string = string.replace(paren_list[i], escaped_paren_list[i])
+        string = string.replace(paren_list[i], escaped_paren_list[i % 2])
     
     return string
 
@@ -31,6 +31,23 @@ def standardize_numbers(string):
         string = string.replace(fullwidth_num_list[i], halfwidth_num_list[i])
 
     return string
+
+
+def standardize_sutegana(string):
+    sutegana_list = ["ァ", "ィ", "ゥ", "ェ", "ォ", "ッ", "ャ", "ュ", "ョ"]
+    katakana_list = ["ア", "イ", "ウ", "エ", "オ", "ツ", "ヤ", "ユ", "ヨ"]
+
+    for i in range(9):
+        string = string.replace(sutegana_list[i], katakana_list[i])
+
+    return string
+
+
+def standardize(string):
+    string = standardize_numbers(string)
+    string = standardize_sutegana(string)
+    return string
+
 
 def regexify(database_dir):
     """Turn all criteria in database files as regular expressions."""
@@ -48,7 +65,7 @@ def regexify(database_dir):
                     criteria, cell_code = line.split("\t")
                     #print("criteria:", criteria)
                     #print("type of criteria:", type(criteria))
-                    criteria = escape_parenthesis(standardize_numbers(criteria))
+                    criteria = escape_parenthesis(standardize(criteria))
                     f2.write("^" + criteria + "$" + "\t" + cell_code + "\n")
                     line = f1.readline().strip()
 
@@ -56,7 +73,7 @@ def regexify(database_dir):
         with open(os.path.join(database_dir, "REGEX_blacklist.txt"), encoding="utf-16", mode="a+") as f4:
             line = f3.readline().strip()
             while line:
-                line = escape_parenthesis(standardize_numbers(line))
+                line = escape_parenthesis(standardize(line))
                 f4.write("^" + line + "$" + "\n")
                 line = f3.readline().strip()
 
@@ -82,7 +99,7 @@ def init_database(database_dir, blacklist, database):
         with open(os.path.join(database_dir, "blacklist.txt"), encoding="utf-16") as file_ptr:
             line = file_ptr.readline().strip()
             while line:
-                line = standardize_numbers(line)
+                line = standardize(line)
                 blacklist.add(line)
                 line = file_ptr.readline().strip()
 
@@ -96,7 +113,7 @@ def init_database(database_dir, blacklist, database):
             while line:
                 #print("line:", line)
                 criteria, cell_code = line.strip().split("\t")
-                criteria = standardize_numbers(criteria)
+                criteria = standardize(criteria)
                 line = file_ptr.readline().strip()
                 if in_blacklist(criteria, blacklist):
                     continue
@@ -128,7 +145,7 @@ def map_cell_codes(input_dir, output_dir, database, mapped_count, total_count):
                 line = input_file_ptr.readline().strip()
                 while line:
                     criteria, amount = line.strip().split("\t")
-                    criteria = standardize_numbers(criteria)
+                    criteria = standardize(criteria)
                     #print("criteria:", criteria, "amount:", amount)
                     cell_code = lookup_database(criteria, database)
                     if cell_code:
