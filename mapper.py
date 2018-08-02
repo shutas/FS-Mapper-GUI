@@ -9,50 +9,73 @@ app = Flask(__name__)
 
 def reset_directory(dir_name):
     """Delete all files inside specified directory."""
+    # Get all files in specified directory
     file_list = [os.path.join(dir_name, file) for file in os.listdir(dir_name)]
+    
+    # Delete those files
     for file in file_list:
         os.remove(file)
 
 
 def purge_directory(dir_name):
     """Delete all REGEX_ files inside specified directory."""
+    # Get all REGEX files from specified directory
     file_list = [os.path.join(dir_name, file) for file in os.listdir(dir_name) if file.startswith("REGEX_") and file.endswith(".txt")]
+    
+    # Delete those files
     for file in file_list:
         os.remove(file)
 
+
 def escape_parenthesis(string):
+    """Add escape characters for regex search."""
+    # paren_list -> possible parenthesis; escaped_paren_list -> standardized
     paren_list = ["(", ")", "（", "）"]
     escaped_paren_list = ["\(", "\)"]
     
+    # Replace matching parenthesis
     for i in range(4):
         string = string.replace(paren_list[i], escaped_paren_list[i % 2])
     
+    # Return escaped string
     return string
 
 
 def standardize_numbers(string):
+    """Convert all fullwidth number strings to halfwidth number strings."""
+    # Lists to iterate for replacement later
     halfwidth_num_list = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]
     fullwidth_num_list = ["０", "１", "２", "３", "４", "５", "６", "７", "８", "９"]
 
+    # Replace all fullwidth numbers to halfwidth numbers
     for i in range(10):
         string = string.replace(fullwidth_num_list[i], halfwidth_num_list[i])
 
+    # Return standardized string
     return string
 
 
 def standardize_sutegana(string):
+    """Convert all katakana-sutegana to upper case."""
+    # Lists to iterate for replacement later
     sutegana_list = ["ァ", "ィ", "ゥ", "ェ", "ォ", "ッ", "ャ", "ュ", "ョ"]
     katakana_list = ["ア", "イ", "ウ", "エ", "オ", "ツ", "ヤ", "ユ", "ヨ"]
 
+    # Replace all relevant lower case sutegana to upper case
     for i in range(9):
         string = string.replace(sutegana_list[i], katakana_list[i])
 
+    # Return standardized string
     return string
 
 
 def standardize(string):
+    """Wrapper function for standardizing representation for strings."""
+    # Standardizing functions
     string = standardize_numbers(string)
     string = standardize_sutegana(string)
+    
+    # Return standardized string
     return string
 
 
