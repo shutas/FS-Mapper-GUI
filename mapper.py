@@ -3,6 +3,7 @@ import re
 import shutil
 import pandas as pd
 import os
+import traceback
 
 app = Flask(__name__)
 
@@ -176,18 +177,27 @@ def hello():
         mapped_count = 0
         total_count = 0
 
-        # Clean output directory
-        reset_directory(output_dir)
+        try:
+            # Clean output directory
+            reset_directory(output_dir)
 
-        # Preprocess database files
-        regexify(database_dir)
+            # Preprocess database files
+            regexify(database_dir)
 
-        # Load database
-        init_database(database_dir, blacklist, database)
+            # Load database
+            init_database(database_dir, blacklist, database)
 
-        # Process input files
-        map_cell_codes(input_dir, output_dir, database, mapped_count, total_count)
-        return render_template("processed.html")
+            # Process input files
+            map_cell_codes(input_dir, output_dir, database, mapped_count, total_count)
+
+            return render_template("processed.html")
+
+        except FileNotFoundError as err:
+            err_msg = str(err)
+            invalid_dir = err_msg[err_msg.find("'") + 1: err_msg.rfind("'")]
+            context = {}
+            context["dirname"] = invalid_dir
+            return render_template("invaliddirectory.html", **context)
     
     return render_template("index.html")
 
