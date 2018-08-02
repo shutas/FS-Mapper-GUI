@@ -192,40 +192,74 @@ def init_database(database_dir, blacklist, database):
     """Initialize database by loading data from files in database_dir"""
     # Construct blacklist
     if "blacklist.txt" in os.listdir(database_dir):
+
+        # Open blacklist file
         with open(os.path.join(database_dir, "blacklist.txt"), encoding="utf-16") as file_ptr:
+
+            # Get the first line in blacklist file
             line = file_ptr.readline().strip()
+
+            # Until end of file
             while line:
+
+                # Preprocess blacklist item
                 line = standardize(line)
+
+                # Add to blacklist
                 blacklist.add(line)
+
+                # Get next line
                 line = file_ptr.readline().strip()
 
-    # Construct database
+    # Get list of all REGEX files (exclude REGEX blacklist files)
     database_file_list = [file for file in os.listdir(database_dir) \
                           if file.startswith("REGEX_") and \
                           file.endswith(".txt") and \
                           file != "REGEX_blacklist.txt"]
 
+    # Construct database
     for file in database_file_list:
-        #print(file)
+        
+        # Open REGEX database file
         with open(os.path.join(database_dir, file), encoding="utf-16") as file_ptr:
+            
+            # Get the first line in REGEX database file
             line = file_ptr.readline().strip()
-            while line:
 
+            # Until end of line
+            while line:
+                
+                # Store criteria/item name and cell code separately
                 criteria, cell_code = line.strip().split("\t")
+
+                # Preprocess criteria/item name
                 criteria = standardize(criteria)
+
+                # Get next line
                 line = file_ptr.readline().strip()
+
+                # If current criteria/item is in blacklist, skip to next line
                 if in_blacklist(criteria, blacklist):
                     continue
+                
+                # If criteria/item is not found in database, add to database
                 elif not lookup_database(criteria, database):
                     database.append((criteria, cell_code))
+
+                # If criteria/item is found in database
                 else:
-                    # Check criteria/cell_code pair is correct
+
+                    # If there is inconsistency in criteria/cell_code pair
                     if lookup_database(criteria, database) != cell_code:
+                        
+                        # Gather error information
                         err_dict = {}
                         err_dict["criteria"] = criteria[1:-1]
                         err_dict["cell_code"] = cell_code
                         err_dict["file"] = file[6:]
                         err_dict["old_cell_code"] = lookup_database(criteria, database)
+                        
+                        # Raise error to be caught in main
                         raise KeyError(err_dict)
 
 
