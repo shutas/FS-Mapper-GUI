@@ -14,7 +14,7 @@ def reset_directory(dir_name):
     """Delete all files inside specified directory."""
     # Get all files in specified directory
     file_list = [os.path.join(dir_name, file) for file in os.listdir(dir_name)]
-    
+
     # Delete those files
     for file in file_list:
         os.remove(file)
@@ -26,7 +26,7 @@ def purge_directory(dir_name):
     file_list = [os.path.join(dir_name, file) \
                  for file in os.listdir(dir_name) \
                  if file.startswith("REGEX_") and file.endswith(".txt")]
-    
+
     # Delete those files
     for file in file_list:
         os.remove(file)
@@ -37,11 +37,11 @@ def escape_parenthesis(string):
     # paren_list -> possible parenthesis; escaped_paren_list -> standardized
     paren_list = ["(", ")", "（", "）"]
     escaped_paren_list = ["\(", "\)"]
-    
+
     # Replace matching parenthesis
     for i in range(4):
         string = string.replace(paren_list[i], escaped_paren_list[i % 2])
-    
+
     # Return escaped string
     return string
 
@@ -79,7 +79,7 @@ def standardize(string):
     # Standardizing functions
     string = standardize_numbers(string)
     string = standardize_sutegana(string)
-    
+
     # Return standardized string
     return string
 
@@ -89,7 +89,7 @@ def regexify(database_dir):
     # Get list of old REGEX files if found in database directory
     regex_file_list = [file for file in os.listdir(database_dir) \
                        if file.startswith("REGEX_") and file.endswith(".txt")]
-    
+
     # Remove these old files
     for file in regex_file_list:
         os.remove(os.path.join(database_dir, file))
@@ -97,26 +97,26 @@ def regexify(database_dir):
     # Get list of all database files (excluding blacklist file)
     file_list = [file for file in os.listdir(database_dir) \
                  if file.endswith(".txt") and file != "blacklist.txt"]
-    
+
     # For each database file
     for file in file_list:
 
         # Open database file
         with open(os.path.join(database_dir, file), encoding="utf-16") as f1:
-            
+
             # Create/open a new REGEX version of the database file
             with open(os.path.join(database_dir, "REGEX_" + file), encoding="utf-16", mode="a+") as f2:
-                
+
                 # Get the first line in original database file
                 line = f1.readline().strip()
-                
+
                 # Until end of file
                 while line:
 
                     # Database file should be in a two-column format
                     try:
                         criteria, cell_code = line.split("\t")
-                    
+
                     # Database file not formatted correctly
                     except ValueError:
 
@@ -145,7 +145,7 @@ def regexify(database_dir):
 
             # Create/open a new REGEX version of the blacklist file
             with open(os.path.join(database_dir, "REGEX_blacklist.txt"), encoding="utf-16", mode="a+") as f4:
-                
+
                 # Get the first line in original blacklist file
                 line = f3.readline().strip()
 
@@ -219,16 +219,16 @@ def init_database(database_dir, blacklist, database):
 
     # Construct database
     for file in database_file_list:
-        
+
         # Open REGEX database file
         with open(os.path.join(database_dir, file), encoding="utf-16") as file_ptr:
-            
+
             # Get the first line in REGEX database file
             line = file_ptr.readline().strip()
 
             # Until end of line
             while line:
-                
+
                 # Store criteria/item name and cell code separately
                 criteria, cell_code = line.strip().split("\t")
 
@@ -241,7 +241,7 @@ def init_database(database_dir, blacklist, database):
                 # If current criteria/item is in blacklist, skip to next line
                 if in_blacklist(criteria, blacklist):
                     continue
-                
+
                 # If criteria/item is not found in database, add to database
                 elif not lookup_database(criteria, database):
                     database.append((criteria, cell_code))
@@ -251,14 +251,14 @@ def init_database(database_dir, blacklist, database):
 
                     # If there is inconsistency in criteria/cell_code pair
                     if lookup_database(criteria, database) != cell_code:
-                        
+
                         # Gather error information
                         err_dict = {}
                         err_dict["criteria"] = criteria[1:-1]
                         err_dict["cell_code"] = cell_code
                         err_dict["file"] = file[6:]
                         err_dict["old_cell_code"] = lookup_database(criteria, database)
-                        
+
                         # Raise error to be caught in main
                         raise KeyError(err_dict)
 
@@ -276,7 +276,7 @@ def map_cell_codes(input_dir, output_dir, database, mapped_count, total_count):
 
             # Create/open a new MAPPED version of the input file
             with open(os.path.join(output_dir, "MAPPED_" + file), encoding="utf-16", mode="a+") as output_file_ptr:
-                
+
                 # Get the first line in original input file
                 line = input_file_ptr.readline().strip()
 
@@ -286,7 +286,7 @@ def map_cell_codes(input_dir, output_dir, database, mapped_count, total_count):
                     # Input file should be in a two-column format
                     try:
                         criteria, amount = line.strip().split("\t")
-                    
+
                     # Input file not formatted correctly
                     except ValueError:
 
@@ -306,27 +306,27 @@ def map_cell_codes(input_dir, output_dir, database, mapped_count, total_count):
 
                         # Write original content + cell code
                         output_file_ptr.write(criteria + "\t" + amount + "\t" + cell_code + "\n")
-                        
+
                         # Update counters
                         mapped_count += 1
                         total_count += 1
 
                     # If not found
                     else:
-                        
+
                         # Write original content
                         output_file_ptr.write(criteria + "\t" + amount + "\n")
 
                         # Update counter
                         total_count += 1
-                    
+
                     # Get next line
                     line = input_file_ptr.readline().strip()
 
         # Write statistics to console
         print(str(mapped_count) + "/" + str(total_count) + " mapped for " + file)
 
- 
+
 @app.route("/", methods=["GET", "POST"])
 def main():
     """Driver program for BMapper."""
@@ -337,11 +337,11 @@ def main():
         input_dir = request.form["input_dir"]
         output_dir = request.form["output_dir"]
         database_dir = request.form["database_dir"]
-        
+
         # Data structures
         database = [] # List of ("regex pattern", "cell code")
         blacklist = set() # Set of "regex pattern"
-        
+
         # For statistical data
         mapped_count = 0
         total_count = 0
@@ -370,17 +370,17 @@ def main():
 
         # Invalid directory
         except FileNotFoundError as err:
-            
+
             # Error message
             err_msg = str(err)
-            
+
             # Get directory name which is between single quotes
             invalid_dir = err_msg[err_msg.find("'") + 1: err_msg.rfind("'")]
-            
+
             # jinja2 variables for rendering
             context = {}
             context["dirname"] = invalid_dir
-            
+
             # Delete intermediate files
             if os.path.exists(database_dir):
                 purge_directory(database_dir)
@@ -389,7 +389,7 @@ def main():
 
             # Render error page
             return render_template("invalid_directory.html", **context)
-        
+
         # Invalid insertion to database
         except KeyError as err:
 
@@ -402,7 +402,7 @@ def main():
 
             # Render error page
             return render_template("invalid_value.html", **context)
-    
+
         # Invalid formatting in input or database file
         except ValueError as err:
 
