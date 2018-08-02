@@ -61,6 +61,8 @@ your_output_directory/
 └── another_file.txt -> Caution: Will be deleted!
 ```
 
+5. Inside the database directory, `blacklist.txt` has a special feature. This file should consist of item names which should NOT be mapped by this program. It should be a Unicode text file where each item name is seperated by a newline.
+
 ## Usage
 
 #### Windows Users
