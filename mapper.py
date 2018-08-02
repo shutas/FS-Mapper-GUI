@@ -5,6 +5,7 @@ import pandas as pd
 import os
 import ast
 
+# Main web app
 app = Flask(__name__)
 
 def reset_directory(dir_name):
@@ -20,7 +21,9 @@ def reset_directory(dir_name):
 def purge_directory(dir_name):
     """Delete all REGEX_ files inside specified directory."""
     # Get all REGEX files from specified directory
-    file_list = [os.path.join(dir_name, file) for file in os.listdir(dir_name) if file.startswith("REGEX_") and file.endswith(".txt")]
+    file_list = [os.path.join(dir_name, file) \
+                 for file in os.listdir(dir_name) \
+                 if file.startswith("REGEX_") and file.endswith(".txt")]
     
     # Delete those files
     for file in file_list:
@@ -81,12 +84,14 @@ def standardize(string):
 
 def regexify(database_dir):
     """Turn all criteria in database files as regular expressions."""
-    regex_file_list = [file for file in os.listdir(database_dir) if file.startswith("REGEX_") and file.endswith(".txt")]
+    regex_file_list = [file for file in os.listdir(database_dir) \
+                       if file.startswith("REGEX_") and file.endswith(".txt")]
     for file in regex_file_list:
         os.remove(os.path.join(database_dir, file))
 
 
-    file_list = [file for file in os.listdir(database_dir) if file.endswith(".txt") and file != "blacklist.txt"]
+    file_list = [file for file in os.listdir(database_dir) \
+                 if file.endswith(".txt") and file != "blacklist.txt"]
     for file in file_list:
         with open(os.path.join(database_dir, file), encoding="utf-16") as f1:
             with open(os.path.join(database_dir, "REGEX_" + file), encoding="utf-16", mode="a+") as f2:
@@ -142,7 +147,10 @@ def init_database(database_dir, blacklist, database):
                 line = file_ptr.readline().strip()
 
     # Construct database
-    database_file_list = [file for file in os.listdir(database_dir) if file.startswith("REGEX_") and file.endswith(".txt") and file != "REGEX_blacklist.txt"]
+    database_file_list = [file for file in os.listdir(database_dir) \
+                          if file.startswith("REGEX_") and \
+                          file.endswith(".txt") and \
+                          file != "REGEX_blacklist.txt"]
 
     for file in database_file_list:
         #print(file)
@@ -159,21 +167,13 @@ def init_database(database_dir, blacklist, database):
                     database.append((criteria, cell_code))
                 else:
                     # Check criteria/cell_code pair is correct
-                    '''try:
-                        if lookup_database(criteria, database) != cell_code:
-                            error_msg = "Conflicting cell code for " + criteria
-                            raise ValueError(error_msg)'''
                     if lookup_database(criteria, database) != cell_code:
-                        error_msg = "Conflicting cell code for " + criteria + " in " + file + "\n" +\
-                        "            Tried to encode " + criteria + " as " + cell_code + "\n" +\
-                        "            But " + criteria + " is already registered as " + lookup_database(criteria, database)
                         err_dict = {}
                         err_dict["criteria"] = criteria[1:-1]
                         err_dict["cell_code"] = cell_code
                         err_dict["file"] = file[6:]
                         err_dict["old_cell_code"] = lookup_database(criteria, database)
                         raise KeyError(err_dict)
-                        #raise KeyError(error_msg)
 
 
 def map_cell_codes(input_dir, output_dir, database, mapped_count, total_count):
