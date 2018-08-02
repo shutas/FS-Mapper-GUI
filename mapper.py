@@ -99,7 +99,7 @@ def lookup_database(string, database):
     for pattern, cell_code in database:
         #print("pattern:", pattern, "|", "cell_code", cell_code)
         # For pattern, take out ^ and $
-        if re.search(pattern[1:-1], string):
+        if re.search(pattern[1:-1], standardize(string)):
             return cell_code
     return ""
 
