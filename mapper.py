@@ -178,19 +178,26 @@ def map_cell_codes(input_dir, output_dir, database, mapped_count, total_count):
 
  
 @app.route("/", methods=["GET", "POST"])
-def hello():
+def main():
+    #
     if request.method == "POST":
-        input_dict = request.form
-        #print(input_dict)
+
+        # Directories
         input_dir = request.form["input_dir"]
         output_dir = request.form["output_dir"]
         database_dir = request.form["database_dir"]
+        
+        # Data structures
         database = [] # List of ("regex pattern", "cell code")
         blacklist = set() # Set of "regex pattern"
+        
+        # For statistical data
         mapped_count = 0
         total_count = 0
 
+        # Driver program:)
         try:
+
             # Clean output directory
             reset_directory(output_dir)
 
@@ -199,25 +206,42 @@ def hello():
 
             # Load database
             init_database(database_dir, blacklist, database)
-            print(database)
+
             # Process input files
             map_cell_codes(input_dir, output_dir, database, mapped_count, total_count)
 
+            # Success! Render processed page
             return render_template("processed.html")
 
+        # Invalid directory
         except FileNotFoundError as err:
+            
+            # Error message
             err_msg = str(err)
+            
+            # Get directory name which is between single quotes
             invalid_dir = err_msg[err_msg.find("'") + 1: err_msg.rfind("'")]
+            
+            # jinja2 variables for rendering
             context = {}
             context["dirname"] = invalid_dir
+            
+            # Render error page
             return render_template("invalid_directory.html", **context)
         
+        # Invalid insertion to database
         except KeyError as err:
+
+            # err is a dict-like string
             context = ast.literal_eval(str(err))
+
+            # Render error page
             return render_template("invalid_value.html", **context)
     
+    # Display main page
     return render_template("index.html")
 
 
 if __name__ == "__main__":
+    # Run app!
     app.run(debug=True)
