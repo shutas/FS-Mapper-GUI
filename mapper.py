@@ -56,15 +56,6 @@ def standardize(string):
     return string
 
 
-def split2_at_tab(line, filename):
-    try:
-        first, second = line.split("\t")
-        return (first, second)
-
-    except:
-        return (None, None)
-
-
 def regexify(database_dir):
     """Turn all criteria in database files as regular expressions."""
     regex_file_list = [file for file in os.listdir(database_dir) if file.startswith("REGEX_") and file.endswith(".txt")]
@@ -78,7 +69,13 @@ def regexify(database_dir):
             with open(os.path.join(database_dir, "REGEX_" + file), encoding="utf-16", mode="a+") as f2:
                 line = f1.readline().strip()
                 while line:
-                    criteria, cell_code = line.split("\t")
+                    try:
+                        criteria, cell_code = line.split("\t")
+                    except ValueError:
+                        err_dict = {}
+                        err_dict["file"] = file
+                        err_dict["line"] = line
+                        raise ValueError(err_dict)
                     #print("criteria:", criteria)
                     #print("type of criteria:", type(criteria))
                     criteria = escape_parenthesis(standardize(criteria))
@@ -129,7 +126,7 @@ def init_database(database_dir, blacklist, database):
         with open(os.path.join(database_dir, file), encoding="utf-16") as file_ptr:
             line = file_ptr.readline().strip()
             while line:
-                #print("line:", line)
+
                 criteria, cell_code = line.strip().split("\t")
                 criteria = standardize(criteria)
                 line = file_ptr.readline().strip()
@@ -166,7 +163,13 @@ def map_cell_codes(input_dir, output_dir, database, mapped_count, total_count):
             with open(os.path.join(output_dir, "MAPPED_" + file), encoding="utf-16", mode="a+") as output_file_ptr:
                 line = input_file_ptr.readline().strip()
                 while line:
-                    criteria, amount = line.strip().split("\t")
+                    try:
+                        criteria, amount = line.strip().split("\t")
+                    except ValueError:
+                        err_dict = {}
+                        err_dict["file"] = file
+                        err_dict["line"] = line
+                        raise ValueError(err_dict)
                     #print("criteria:", criteria, "amount:", amount)
                     cell_code = lookup_database(criteria, database)
                     if cell_code:
@@ -185,6 +188,7 @@ def map_cell_codes(input_dir, output_dir, database, mapped_count, total_count):
  
 @app.route("/", methods=["GET", "POST"])
 def main():
+    """Driver program for BMapper."""
     # If data is submitted on the main page
     if request.method == "POST":
 
@@ -248,7 +252,7 @@ def main():
         # Invalid insertion to database
         except KeyError as err:
 
-            # err is a dict-like string
+            # err is a dictionary
             context = ast.literal_eval(str(err))
 
             # Delete intermediate files
@@ -258,6 +262,19 @@ def main():
             # Render error page
             return render_template("invalid_value.html", **context)
     
+        # Invalid formatting in input or database file
+        except ValueError as err:
+
+            # err is a dictionary
+            context = ast.literal_eval(str(err))
+
+            # Delete intermediate files
+            purge_directory(database_dir)
+            purge_directory(input_dir)
+
+            # Render error page
+            return render_template("invalid_format.html", **context)
+
     # Display main page
     return render_template("index.html")
 
