@@ -98,7 +98,8 @@ def in_blacklist(string, blacklist):
 def lookup_database(string, database):
     for pattern, cell_code in database:
         #print("pattern:", pattern, "|", "cell_code", cell_code)
-        if re.search(pattern, string):
+        # For pattern, take out ^ and $
+        if re.search(pattern[1:-1], string):
             return cell_code
     return ""
 
@@ -135,14 +136,12 @@ def init_database(database_dir, blacklist, database):
                     '''try:
                         if lookup_database(criteria, database) != cell_code:
                             error_msg = "Conflicting cell code for " + criteria
-                            raise ValueError(error_msg)
-                    except ValueError as error:
-                        raise'''
+                            raise ValueError(error_msg)'''
                     if lookup_database(criteria, database) != cell_code:
                         error_msg = "Conflicting cell code for " + criteria + " in " + file + "\n" +\
                         "            Tried to encode " + criteria + " as " + cell_code + "\n" +\
                         "            But " + criteria + " is already registered as " + lookup_database(criteria, database)
-                        raise RuntimeError(error_msg)
+                        raise KeyError(error_msg)
 
 
 def map_cell_codes(input_dir, output_dir, database, mapped_count, total_count):
@@ -176,7 +175,7 @@ def map_cell_codes(input_dir, output_dir, database, mapped_count, total_count):
 def hello():
     if request.method == "POST":
         input_dict = request.form
-        print(input_dict)
+        #print(input_dict)
         input_dir = request.form["input_dir"]
         output_dir = request.form["output_dir"]
         database_dir = request.form["database_dir"]
@@ -194,7 +193,7 @@ def hello():
 
             # Load database
             init_database(database_dir, blacklist, database)
-
+            print(database)
             # Process input files
             map_cell_codes(input_dir, output_dir, database, mapped_count, total_count)
 
@@ -207,9 +206,10 @@ def hello():
             context["dirname"] = invalid_dir
             return render_template("invalid_directory.html", **context)
         
-        '''except ValueError as err:
-            print(err)
-            return render_template("invalid_format.html")'''
+        except KeyError as err:
+            context = {}
+            context["message"] = err
+            return render_template("invalid_value.html", **context)
     
     return render_template("index.html")
 
