@@ -113,7 +113,7 @@ def regexify(database_dir):
                 # Until end of file
                 while line:
 
-                    # Database file should be a two-column format
+                    # Database file should be in a two-column format
                     try:
                         criteria, cell_code = line.split("\t")
                     
@@ -180,8 +180,8 @@ def lookup_database(string, database):
     # Iterate through the database
     for pattern, cell_code in database:
 
-        # For pattern, take out ^ and $
-        if re.search(pattern[1:-1], standardize(string)):
+        # If found, return corresnponding cell code
+        if re.search(pattern, standardize(string)):
             return cell_code
 
     # Not found, return empty string
@@ -265,35 +265,66 @@ def init_database(database_dir, blacklist, database):
 
 def map_cell_codes(input_dir, output_dir, database, mapped_count, total_count):
     """Map cell codes for all lines in files in input_dir."""
+    # Get list of all input files
     file_list = [file for file in os.listdir(input_dir) if file.endswith(".txt")]
 
+    # For each input file
     for file in file_list:
 
+        # Open input file
         with open(os.path.join(input_dir, file), encoding="utf-16") as input_file_ptr:
+
+            # Create/open a new MAPPED version of the input file
             with open(os.path.join(output_dir, "MAPPED_" + file), encoding="utf-16", mode="a+") as output_file_ptr:
+                
+                # Get the first line in original input file
                 line = input_file_ptr.readline().strip()
+
+                # Until end of file
                 while line:
+
+                    # Input file should be in a two-column format
                     try:
                         criteria, amount = line.strip().split("\t")
+                    
+                    # Input file not formatted correctly
                     except ValueError:
+
+                        # Gather error information
                         err_dict = {}
                         err_dict["file"] = file
                         err_dict["line"] = line
+
+                        # Raise error to be caught in main
                         raise ValueError(err_dict)
-                    #print("criteria:", criteria, "amount:", amount)
+
+                    # Lookup cell code for criteria/item in database
                     cell_code = lookup_database(criteria, database)
+
+                    # If found, write to MAPPED version of the input file
                     if cell_code:
-                        #print("Yup")
+
+                        # Write original content + cell code
                         output_file_ptr.write(criteria + "\t" + amount + "\t" + cell_code + "\n")
+                        
+                        # Update counters
                         mapped_count += 1
                         total_count += 1
-                        #total = total + 1
+
+                    # If not found
                     else:
-                        #print("Nope")
+                        
+                        # Write original content
                         output_file_ptr.write(criteria + "\t" + amount + "\n")
+
+                        # Update counter
                         total_count += 1
-                        print(criteria)
+                    
+                    # Get next line
                     line = input_file_ptr.readline().strip()
+
+        # Write statistics to console
+        print(str(mapped_count) + "/" + str(total_count) + " mapped for " + file)
 
  
 @app.route("/", methods=["GET", "POST"])
