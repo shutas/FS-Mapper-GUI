@@ -5,8 +5,6 @@
 import os
 import re
 import ast
-import shutil
-import pandas as pd
 from flask import Flask, render_template, url_for, request
 
 # Main web app
