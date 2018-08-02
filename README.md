@@ -13,7 +13,7 @@ This is a simple tool that given well-formatted input files and database files (
 
 #### Developers:
 - `Python3.x`
-- `pip` to install dependencies such as `flask`, `pandas`, etc...
+- `pip` to install dependencies such as `flask`, `jinja2`, etc...
 - `git` ...but you probably have it, right? ;)
 
 ## Installation
@@ -62,6 +62,8 @@ your_output_directory/
 ```
 
 5. Inside the database directory, `blacklist.txt` has a special feature. This file should consist of item names which should NOT be mapped by this program. It should be a Unicode text file where each item name is seperated by a newline.
+
+6. You can use regular expressions (regex) in your database files. The program will automatically insert a starting and ending anchors (^ and $ respectively). For example, if you wanted to search for something that starts with `土地` but may have any number of characters following it, you could enter `土地.*` to indicate the pattern.
 
 ## Usage
 
